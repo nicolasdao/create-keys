@@ -8,7 +8,7 @@ const inquirer = require('inquirer')
 require('colors')
 const { version } = require('./package.json')
 const { Keypair } = require('./src')
-const { getDefaultChoice, requiredPrompt, displayKeypair, getCiphers, getRsakeyLength, getEcCurves } = require('./src/utils')
+const { getDefaultChoice, requiredPrompt, showcaseKeypair, getCiphers, getRsakeyLength, getEcCurves } = require('./src/utils')
 
 const DEFAULT_EC_CURCE = 'prime256v1'
 const DEFAULT_RSA_KEY_LENGTH = 2048
@@ -60,25 +60,39 @@ program
 		]), 'formats')
 		keyPairConfig.formats = formats
 
-		const showPem = formats.some(f => f == 'pem')
-		const showJwk = formats.some(f => f == 'jwk')
+		const pemSelected = formats.some(f => f == 'pem')
+		const jwkSelected = formats.some(f => f == 'jwk')
+
+		const { printOrSaveOptions=[] } = await requiredPrompt(() => inquirer.prompt([
+			{ type: 'checkbox', name: 'printOrSaveOptions', message: 'Choose the output options', choices:[
+				{ name:'Print in this terminal', value:'print', checked:true },
+				{ name:'Save to files', value:'save' },
+				{ name:'both', value:'both' },
+			] 
+			}
+		]), 'printOrSaveOptions')
+
+		const printKeys = printOrSaveOptions.some(o => o == 'both' || o == 'print')
+		const saveKeys = printOrSaveOptions.some(o => o == 'both' || o == 'save')
+		const options = { print:printKeys, save:saveKeys }
 
 		const keypair = new Keypair(keyPairConfig)
-		const displayKey = displayKeypair(keypair)
-		const displayPrivateKey = displayKey('private')
-		const displayPublicKey = displayKey('public')
 
-		console.log('PRIVATE KEY'.green.underline.bold)
-		if (showPem) 
-			await displayPrivateKey('PEM')
-		if (showJwk) 
-			await displayPrivateKey('JWK')
+		const showcaseKey = showcaseKeypair(keypair)
+		const showcasePrivateKey = showcaseKey('private')
+		const showcasePublicKey = showcaseKey('public')
 
-		console.log('PUBLIC KEY'.green.underline.bold)
-		if (showPem) 
-			await displayPublicKey('PEM')
-		if (showJwk) 
-			await displayPublicKey('JWK')
+		if (printKeys) console.log('PRIVATE KEY'.green.underline.bold)
+		if (pemSelected) 
+			await showcasePrivateKey('PEM', { ...options, file:'private.key' })
+		if (jwkSelected) 
+			await showcasePrivateKey('JWK', { ...options, file:'private.json' })
+
+		if (printKeys) console.log('PUBLIC KEY'.green.underline.bold)
+		if (pemSelected) 
+			await showcasePublicKey('PEM', { ...options, file:'public.pem' })
+		if (jwkSelected) 
+			await showcasePublicKey('JWK', { ...options, file:'public.json' })
 
 	})
 

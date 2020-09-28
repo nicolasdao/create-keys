@@ -1,4 +1,5 @@
 const crypto = require('crypto')
+const { getUniqueFileName, write } = require('./file')
 require('colors')
 // Only the following curves support JWK convertion from pem thanks the the 'ec-key' package.
 const EC_FULLY_SUPPORTED_CURVES = ['prime256v1', 'secp384r1']
@@ -68,17 +69,27 @@ const numberToBase64 = nbr => {
 
 const base64ToNumber = b64 => parseInt(Buffer.from(b64, 'base64').toString('hex'), 16)
 
-const displayKeypair = keypair => keyType => async type => {
-	console.log(`${type} format:`.green)
+const showcaseKeypair = keypair => keyType => async (type, options={}) => {
+	const { print, save, file } = options
+	if (print) console.log(`${type} format:`.green)
 	const [errors, key] = await keypair.to(type.toLowerCase())
 	if (errors)
-		printErrors(errors)
-	else {
-		const val = key[keyType]
+		return printErrors(errors)
+	
+	const val = key[keyType]
+	
+	if (print) {
 		if (typeof(val) == 'object')
 			console.log(JSON.parse(JSON.stringify(val)))
 		else
 			console.log(val)
+	}
+
+	if (save) {
+		const isJSON = typeof(val) == 'object'
+		const origFileName = file || (isJSON ? 'key.json' : 'key.pem')
+		const filePath = await getUniqueFileName(origFileName)
+		await write(filePath, val)
 	}
 }
 
@@ -165,7 +176,7 @@ module.exports = {
 	requiredPrompt,
 	EC_FULLY_SUPPORTED_CURVES,
 	doesCurveSupportJwkFormat,
-	displayKeypair,
+	showcaseKeypair,
 	printErrors,
 	numberToBase64,
 	base64ToNumber,
