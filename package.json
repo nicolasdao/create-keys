@@ -8,7 +8,7 @@
   },
   "scripts": {
     "lint": "eslint src/ test/ index.js --fix",
-    "push": "git push --follow-tags origin master",
+    "push": "git push --follow-tags origin master && npm publish",
     "rls": "standard-version --release-as",
     "test": "mocha --exit",
     "v": "node -e \"console.log(require('./package.json').version)\""
