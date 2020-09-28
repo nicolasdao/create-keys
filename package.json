@@ -1,0 +1,41 @@
+{
+  "name": "create-keys",
+  "version": "0.0.1",
+  "description": "Creates asymmetric keypairs",
+  "main": "index.js",
+  "bin": {
+    "create-keys": "src/keypair.js"
+  },
+  "scripts": {
+    "lint": "eslint src/ test/ index.js --fix",
+    "push": "git push --follow-tags origin master",
+    "rls": "standard-version --release-as",
+    "test": "mocha --exit",
+    "v": "node -e \"console.log(require('./package.json').version)\""
+  },
+  "keywords": [
+    "asymmetric",
+    "keys",
+    "rsa",
+    "ecdsa"
+  ],
+  "author": "Nicolas Dao",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.9.0",
+    "mocha": "^8.1.3",
+    "standard-version": "^9.0.0"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^6.1.0",
+    "inquirer": "^7.3.3",
+    "jwk-to-ssh": "^1.2.0",
+    "node-rsa": "^1.1.1",
+    "pem-jwk": "^2.0.0",
+    "puffy": "^1.2.1",
+    "rsa-pem-from-mod-exp": "^0.8.4",
+    "ssh-to-jwk": "^1.2.6"
+  }
+}
