@@ -31,11 +31,9 @@
     "colors": "^1.4.0",
     "commander": "^6.1.0",
     "inquirer": "^7.3.3",
-    "jwk-to-ssh": "^1.2.0",
     "node-rsa": "^1.1.1",
     "pem-jwk": "^2.0.0",
     "puffy": "^1.2.1",
-    "rsa-pem-from-mod-exp": "^0.8.4",
-    "ssh-to-jwk": "^1.2.6"
+    "rsa-pem-from-mod-exp": "^0.8.4"
   }
 }

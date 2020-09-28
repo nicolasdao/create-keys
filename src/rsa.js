@@ -2,7 +2,7 @@ const getPem = require('rsa-pem-from-mod-exp')
 const { error: { catchErrors, wrapErrors } } = require('puffy')
 // const { pem2jwk } = require('pem-jwk')
 const NodeRSA = require('node-rsa')
-const { numberToBase64, base64ToNumber, jwtBuffer, jwtB64 } = require('./utils')
+const { jwtBuffer, jwtB64 } = require('./utils')
 
 /**
  * Create a PEM string from a public RSA modulus and exponent. 
@@ -62,9 +62,9 @@ const pemToJwk = (pemKey, isPrivate) => catchErrors(() => {
 				d: jwt.d,
 				p: jwt.p,
 				q: jwt.q,
-				dmp1: jwt.dmp1,
-				dmq1: jwt.dmq1,
-				coeff: jwt.coeff
+				dp: jwt.dmp1,
+				dq: jwt.dmq1,
+				qi: jwt.coeff
 			})
 		else
 			return jwtB64(core)

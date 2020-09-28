@@ -2,8 +2,6 @@ const crypto = require('crypto')
 const { error:{ catchErrors, wrapErrors } } = require('puffy')
 const rsaHelp = require('./rsa')
 const ecHelp = require('./ec')
-const jwktossh = require('jwk-to-ssh')
-const sshtojwk = require('ssh-to-jwk')
 
 const SUPPORTED_FORMATS = ['pem', 'jwk', 'ssh']
 
@@ -20,57 +18,6 @@ const isPemKeyPrivate = (pemKey='', options={}) => {
 }
 
 const jwkKeyToPem = (jwkKey={}) => jwkKey.crv ? ecHelp.jwkToPem(jwkKey) : rsaHelp.jwkToPem(jwkKey)
-
-const jwkKeyToSsh = (jwkKey={}) => {
-	const isRSA = !jwkKey.crv
-	const errorMsg = `Failed to convert ${isRSA ? 'RSA' : 'ECDSA'} key from JWK to SSH format`
-
-	if (jwkKey.d !== undefined) { // private key
-		const [errors, pemKey] = jwkKeyToPem(jwkKey)
-		if (errors)
-			throw wrapErrors(errorMsg, errors)
-		return pemKey
-	} else {
-		const [errors, ssh] = publicJwkToSsh(jwkKey)
-		if (errors)
-			throw wrapErrors(errorMsg, errors)
-		return ssh
-	}
-}
-
-const sshKeyToJwk = (sshKey='') => catchErrors(() => {
-	const errorMsg = 'Failed to convert key from SSH to JWK format'
-
-	try {
-		const jwk = /BEGIN(.*?)PRIVATE/.test(sshKey) ? sshtojwk.parse({ pem:sshKey }) : sshtojwk.parse({ pub:sshKey })
-		return jwk
-	} catch(err) {
-		throw wrapErrors(errorMsg, [err])
-	}
-})
-
-const sshKeyToPem = (sshKey='') => catchErrors(() => {
-	const errorMsg = 'Failed to convert key from SSH to PEM format'
-	if (/BEGIN(.*?)PRIVATE/.test(sshKey)) 
-		return sshKey
-	else {
-		const [errors, jwk] = sshKeyToJwk(sshKey)
-		if (errors)
-			throw wrapErrors(errorMsg, errors)
-
-		if (jwk.crv) {
-			const [pemErrors, pem] = jwkKeyToPem(jwk)
-			if (pemErrors)
-				throw wrapErrors(errorMsg, pemErrors)
-			return pem
-		} else {
-			const [pemErrors, pem] = jwkKeyToPem(jwk)
-			if (pemErrors)
-				throw wrapErrors(errorMsg, pemErrors)
-			return pem
-		}
-	}
-})
 
 const rsaKeyPemToJwk = (pemKey='', options={}) => catchErrors(() => {
 	const isPrivate = isPemKeyPrivate(pemKey, options)
@@ -103,23 +50,6 @@ const pemKeyToJwk = (pemKey='', options={}) => catchErrors(() => {
 	return rsaErrors ? ecJwk : rsaJwk
 })
 
-const pemKeyToSsh = (pemKey='', options={}) => catchErrors(() => {
-	const errorMsg = 'Failed to convert key from PEM to SSH format'
-	const isPrivate = isPemKeyPrivate(pemKey, options)
-	if (isPrivate)
-		return pemKey
-	else {
-		const [jwkErrors, jwk] = pemKeyToJwk(pemKey, options)
-		if (jwkErrors)
-			throw wrapErrors(errorMsg, jwkErrors)
-
-		const [errors, ssh] = publicJwkToSsh(jwk)
-		if (errors)
-			throw wrapErrors(errorMsg, errors)
-		return ssh
-	}
-})
-
 const rsaKeyPairPemToJwk = ({ private:privateKey, public:publicKey }) => catchErrors(() => {
 	const errorMsg = 'Failed to convert RSA keypair from PEM to JWK'
 	const [privateJwkErrors, privateJwk] = rsaKeyPemToJwk(privateKey, { private:true })
@@ -134,22 +64,6 @@ const rsaKeyPairPemToJwk = ({ private:privateKey, public:publicKey }) => catchEr
 	}
 })
 
-const rsaKeyPairPemToSsh = ({ private:privateKey, public:publicKey }) => catchErrors(() => {
-	const errorMsg = 'Failed to convert RSA keypair from PEM to SSH'
-	const [publicJwkErrors, publicJwk] = rsaKeyPemToJwk(publicKey, { public:true })
-
-	if (publicJwkErrors)
-		throw wrapErrors(errorMsg, publicJwkErrors)
-
-	const [errors, ssh] = publicJwkToSsh(publicJwk)
-	if (errors)
-		throw wrapErrors(errorMsg, errors)
-
-	return {
-		private: privateKey,
-		public: ssh
-	}
-})
 
 const ecKeyPairPemToJwk = ({ private:privateKey, public:publicKey }) => catchErrors(() => {
 	const errorMsg = 'Failed to convert ECDSA keypair from PEM to JWK'
@@ -165,25 +79,7 @@ const ecKeyPairPemToJwk = ({ private:privateKey, public:publicKey }) => catchErr
 	}
 })
 
-const ecKeyPairPemToSsh = ({ private:privateKey, public:publicKey }) => catchErrors(() => {
-	const errorMsg = 'Failed to convert ECDSA keypair from PEM to SSH'
-	const [publicJwkErrors, publicJwk] = ecKeyPemToJwk(publicKey)
-
-	if (publicJwkErrors)
-		throw wrapErrors(errorMsg, publicJwkErrors)
-
-	const [errors, ssh] = publicJwkToSsh(publicJwk)
-	if (errors)
-		throw wrapErrors(errorMsg, errors)
-
-	return {
-		private: privateKey,
-		public: ssh
-	}
-})
-
 const keyPairPemToJwk = cipher => cipher == 'rsa' ? rsaKeyPairPemToJwk : ecKeyPairPemToJwk
-const keyPairPemToSsh = cipher => cipher == 'rsa' ? rsaKeyPairPemToSsh : ecKeyPairPemToSsh
 
 /**
  * Creates a new asymmetric Keypair instance. 
@@ -235,14 +131,8 @@ function Keypair(config) {
 			throw wrapErrors(errorMsg, pemErrors)
 		if (type == 'pem')
 			return pemResult
-		else if (type == 'jwk') {
-			const [errors, result] = keyPairPemToJwk(cipher)(pemResult)
-			if (errors)
-				throw wrapErrors(errorMsg, errors)
-			return result
-		}
 		else {
-			const [errors, result] = keyPairPemToSsh(cipher)(pemResult)
+			const [errors, result] = keyPairPemToJwk(cipher)(pemResult)
 			if (errors)
 				throw wrapErrors(errorMsg, errors)
 			return result
@@ -257,13 +147,12 @@ function Keypair(config) {
  * Creates a new asymmetric Key instance. 
  * 
  * @param {Object}	config.jwk			Key in its JWK form.
- * @param {String}	config.ssh			Key in its SSH form.
  * @param {String}	config.pem			Key in its PEM form.
  */
 function Key(config={}) {
 	const errorMsg = 'Failed to create new Key instance'
-	const { jwk, pem, ssh } = config
-	if (jwk === undefined && pem === undefined && ssh === undefined)
+	const { jwk, pem } = config
+	if (jwk === undefined && pem === undefined)
 		throw new Error(`${errorMsg}. Missing required key. At least one of those three properties is required: jwk, pem or ssh`)
 
 	const keyFormat = jwk ? 'jwk' : pem ? 'pem' : 'ssh'
@@ -276,27 +165,8 @@ function Key(config={}) {
 		if (keyFormat == 'pem') {
 			if (type == 'pem')
 				return pem
-			else if (type == 'ssh') {
-				const [errors, sshFormat] = pemKeyToSsh(pem)
-				if (errors)
-					throw wrapErrors(errorMsg, errors)
-				return sshFormat
-			} else { // jwk
-				const [errors, jwkFormat] = pemKeyToJwk(pem)
-				if (errors)
-					throw wrapErrors(errorMsg, errors)
-				return jwkFormat
-			}
-		} else if (keyFormat == 'ssh') {
-			if (type == 'pem') {
-				const [errors, pemFormat] = sshKeyToPem(ssh)
-				if (errors)
-					throw wrapErrors(errorMsg, errors)
-				return pemFormat
-			} else if (type == 'ssh')
-				return ssh
 			else { // jwk
-				const [errors, jwkFormat] = sshKeyToJwk(ssh)
+				const [errors, jwkFormat] = pemKeyToJwk(pem)
 				if (errors)
 					throw wrapErrors(errorMsg, errors)
 				return jwkFormat
@@ -307,11 +177,6 @@ function Key(config={}) {
 				if (errors)
 					throw wrapErrors(errorMsg, errors)
 				return pemFormat
-			} else if (type == 'ssh') {
-				const [errors, sshFormat] = jwkKeyToSsh(jwk)
-				if (errors)
-					throw wrapErrors(errorMsg, errors)
-				return sshFormat
 			} else  // jwk
 				return jwk
 		}

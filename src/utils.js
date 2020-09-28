@@ -103,6 +103,19 @@ const jwtB64 = jwt => {
 		b64Version.dmq1 = jwt.dmq1.toString('base64')
 	if (jwt.coeff && jwt.coeff instanceof Buffer)
 		b64Version.coeff = jwt.coeff.toString('base64')
+	if (jwt.dp && jwt.dp instanceof Buffer)
+		b64Version.dp = jwt.dp.toString('base64')
+	if (jwt.dq && jwt.dq instanceof Buffer)
+		b64Version.dq = jwt.dq.toString('base64')
+	if (jwt.qi && jwt.qi instanceof Buffer)
+		b64Version.qi = jwt.qi.toString('base64')
+
+	b64Version.qi = b64Version.qi || b64Version.coeff
+	b64Version.coeff = b64Version.coeff || b64Version.qi
+	b64Version.dmp1 = b64Version.dmp1 || b64Version.dp
+	b64Version.dp = b64Version.dp || b64Version.dmp1
+	b64Version.dmq1 = b64Version.dmq1 || b64Version.dq
+	b64Version.dq = b64Version.dq || b64Version.dmq1
 
 	return b64Version
 }
@@ -128,6 +141,19 @@ const jwtBuffer = jwt => {
 		buffVersion.dmq1 = Buffer.from(jwt.dmq1, 'base64')
 	if (jwt.coeff && typeof(jwt.coeff) == 'string')
 		buffVersion.coeff = Buffer.from(jwt.coeff, 'base64')
+	if (jwt.dp && typeof(jwt.dp) == 'string')
+		buffVersion.dp = Buffer.from(jwt.dp, 'base64')
+	if (jwt.dq && typeof(jwt.dq) == 'string')
+		buffVersion.dq = Buffer.from(jwt.dq, 'base64')
+	if (jwt.qi && typeof(jwt.qi) == 'string')
+		buffVersion.qi = Buffer.from(jwt.qi, 'base64')
+
+	buffVersion.qi = buffVersion.qi || buffVersion.coeff
+	buffVersion.coeff = buffVersion.coeff || buffVersion.qi
+	buffVersion.dmp1 = buffVersion.dmp1 || buffVersion.dp
+	buffVersion.dp = buffVersion.dp || buffVersion.dmp1
+	buffVersion.dmq1 = buffVersion.dmq1 || buffVersion.dq
+	buffVersion.dq = buffVersion.dq || buffVersion.dmq1
 
 	return buffVersion
 }

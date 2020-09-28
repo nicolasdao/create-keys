@@ -55,15 +55,13 @@ program
 		const { formats } = await requiredPrompt(() => inquirer.prompt([
 			{ type: 'checkbox', name: 'formats', message: 'Choose the output formats', choices:[
 				{ name:'pem', value:'pem', checked:true }, 
-				{ name:'jwk', value:'jwk', checked:false },
-				{ name:'ssh', value:'ssh', checked:false }] 
+				{ name:'jwk', value:'jwk', checked:false }] 
 			}
 		]), 'formats')
 		keyPairConfig.formats = formats
 
 		const showPem = formats.some(f => f == 'pem')
 		const showJwk = formats.some(f => f == 'jwk')
-		const showSsh = formats.some(f => f == 'ssh')
 
 		const keypair = new Keypair(keyPairConfig)
 		const displayKey = displayKeypair(keypair)
@@ -75,16 +73,12 @@ program
 			await displayPrivateKey('PEM')
 		if (showJwk) 
 			await displayPrivateKey('JWK')
-		if (showSsh) 
-			await displayPrivateKey('SSH')
 
 		console.log('PUBLIC KEY'.green.underline.bold)
 		if (showPem) 
 			await displayPublicKey('PEM')
 		if (showJwk) 
 			await displayPublicKey('JWK')
-		if (showSsh) 
-			await displayPublicKey('SSH')
 
 	})
 
