@@ -31,13 +31,13 @@ For any help with the CLI, use:
 npx create-keys help
 ```
 
-##Creating new keys
+## Creating new keys
 
 ```
 npx create-keys
 ```
 
-##Converting from one format to another
+## Converting from one format to another
 
 ```
 npx create-keys convert private.pem
@@ -51,7 +51,7 @@ npx create-keys convert private.json
 
 `create-keys` automatically detectects the format (PEM vs JWK), the type (private vs public keys) and the cipher (RSA vs ECDSA). 
 
-##Listing OpenID JWK public keys using an OpenID discovery endpoint
+## Listing OpenID JWK public keys using an OpenID discovery endpoint
 
 ```
 npx create-keys list https://accounts.google.com/.well-known/openid-configuration
@@ -65,7 +65,7 @@ npx create-keys list https://www.googleapis.com/oauth2/v3/certs
 
 `create-keys` supports both an OpenID discovery endpoint or the direct `jwks_uri` endpoint. 
 
-##Converting OpenID JWK public keys to PEM files
+## Converting OpenID JWK public keys to PEM files
 
 ```
 npx create-keys convert https://accounts.google.com/.well-known/openid-configuration

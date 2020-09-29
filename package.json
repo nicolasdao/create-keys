@@ -1,7 +1,7 @@
 {
   "name": "create-keys",
   "version": "1.0.0",
-  "description": "`npx create-keys` is a terminal assistant that helps creating RSA or ECDSA asymmetric key pairs. Supported formats: PEM and JWK. Supported encoding: PCKS8 for private keys, PCKS1 for RSA public keys and SPKI for ECDSA public keys. Supported ECDSA curves: P-256 (prime256v1) and P-384 (secp384r1).",
+  "description": "`npx create-keys` is a terminal assistant that helps creating RSA or ECDSA asymmetric key pairs (also works in NodeJS). Supported formats: PEM and JWK. Supported encoding: PCKS8 for private keys, PCKS1 for RSA public keys and SPKI for ECDSA public keys. Supported ECDSA curves: P-256 (prime256v1) and P-384 (secp384r1).",
   "main": "src/index.js",
   "bin": {
     "create-keys": "index.js"
