@@ -1,6 +1,9 @@
 const crypto = require('crypto')
-const { getUniqueFileName, write } = require('./file')
 require('colors')
+const { fetch, error:{ catchErrors, wrapErrors } } = require('puffy')
+const { getUniqueFileName, write } = require('./file')
+
+
 // Only the following curves support JWK convertion from pem thanks the the 'ec-key' package.
 const EC_FULLY_SUPPORTED_CURVES = ['prime256v1', 'secp384r1']
 // Full list: ['rsa', 'dsa', 'ec', 'ed25519', 'ed448', 'x25519', 'x448', 'dh']
@@ -70,13 +73,13 @@ const numberToBase64 = nbr => {
 const base64ToNumber = b64 => parseInt(Buffer.from(b64, 'base64').toString('hex'), 16)
 
 const showcaseKeypair = keypair => keyType => async (type, options={}) => {
-	const { print, save, file } = options
-	if (print) console.log(`${type} format:`.green)
+	const { print, save, file, header } = options
+	if (print) console.log((header ? header : `${type} format:`).green)
 	const [errors, key] = await keypair.to(type.toLowerCase())
 	if (errors)
 		return printErrors(errors)
 	
-	const val = key[keyType]
+	const val = keyType ? key[keyType] : key
 	
 	if (print) {
 		if (typeof(val) == 'object')
@@ -169,6 +172,64 @@ const jwtBuffer = jwt => {
 	return buffVersion
 }
 
+const cleanJwk = jwk => {
+	if (!jwk || typeof(jwk) != 'object')
+		return 
+
+	const keys = Object.keys(jwk)
+	if (keys.indexOf('coeff') >= 0)
+		delete jwk.coeff
+	if (keys.indexOf('dmq1') >= 0)
+		delete jwk.dmq1
+	if (keys.indexOf('dmp1') >= 0)
+		delete jwk.dmp1
+
+	for (let key in jwk)
+		if (!jwk[key])
+			delete jwk[key]
+
+	return jwk
+}
+
+const listPublicKeys = url => catchErrors((async () => {
+	const { status, data } = await fetch.get({ uri: url })
+	if (status == 404)
+		throw new Error(`OpenID jwks_uri endpoint ${url} not found (status: 404)`)
+	if (status >= 400)
+		throw new Error(`Failed to GET OpenID jwks_uri data at ${url} (status: ${status}). Details: ${data && typeof(data) == 'object' ? JSON.stringify(data) : data}`)
+
+	return data
+})())
+
+/**
+ * HTTP GET public keys at OpenID url. This URL can either be the OpenID discovery endpoint, in which case, another HTTP GET
+ * is done to the 'jwks_uri' endpoint, or it can be the 'jwks_uri'.
+ * 
+ * @param  {String} url	
+ * 
+ * @return {String} output.jwks_uri
+ * @return {Object} output.keys
+ */
+const listOpenIDpublicKeys = url => catchErrors((async () => {
+	const errorMsg = `Failed to GET OpenID public keys at ${url||'unknown URL'}`
+	if (!url)
+		throw new Error(`${errorMsg}. Missing required 'url'`)
+
+	const { status, data } = await fetch.get({ uri: url })
+	if (status == 404)
+		throw new Error(`${errorMsg}(status: 404). OpenID discovery endpoint ${url} not found.`)
+	if (status >= 400)
+		throw new Error(`${errorMsg}(status: ${status}). Details: ${data && typeof(data) == 'object' ? JSON.stringify(data) : data}`)
+
+	if (data.jwks_uri) {
+		const [errors, keys] = await listPublicKeys(data.jwks_uri)
+		if (errors)
+			throw wrapErrors(errorMsg, errors)
+		return { jwks_uri:data.jwks_uri, data:keys||{} }
+	} else
+		return { jwks_uri:url, data:data||{} }
+})())
+
 module.exports = {
 	jwtBuffer,
 	jwtB64,
@@ -183,4 +244,6 @@ module.exports = {
 	getEcCurves,
 	getRsakeyLength: () => RSA_KEY_LENGTH,
 	getCiphers: () => CIPHERS,
+	cleanJwk,
+	listOpenIDpublicKeys
 }

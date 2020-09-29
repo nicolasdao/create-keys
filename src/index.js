@@ -2,6 +2,7 @@ const crypto = require('crypto')
 const { error:{ catchErrors, wrapErrors } } = require('puffy')
 const rsaHelp = require('./rsa')
 const ecHelp = require('./ec')
+const { cleanJwk } = require('./utils')
 
 const SUPPORTED_FORMATS = ['pem', 'jwk', 'ssh']
 
@@ -47,7 +48,7 @@ const pemKeyToJwk = (pemKey='', options={}) => catchErrors(() => {
 	if (rsaErrors && ecErrors)
 		throw new Error(`Failed to convert ${isPrivate ? 'private' : 'public'} key from PEM to JWK format. The PEM key cannot is not recognized as a valid RSA or ECDSA key.`)
 
-	return rsaErrors ? ecJwk : rsaJwk
+	return cleanJwk(rsaErrors ? ecJwk : rsaJwk)
 })
 
 const rsaKeyPairPemToJwk = ({ private:privateKey, public:publicKey }) => catchErrors(() => {

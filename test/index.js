@@ -29,7 +29,7 @@ const assertNoErrors = (errors, comment) => {
 }
 
 describe('Keypair', () => {
-	describe('create', () => {
+	describe('constructor', () => {
 		it('01 - Should create a RSA pem and JWK keys.', async () => {
 			const keypair = new Keypair({ cipher:'rsa' })
 			const [pemErrors, pemKeys] = await keypair.to('pem')
@@ -119,6 +119,32 @@ describe('Keypair', () => {
 
 		})
 	})	
+})
+
+describe('Key', () => {
+	describe('#to', () => {
+		it('01 - Should convert private key from PEM to JWK format', async () => {
+			const keypair = new Keypair({ cipher:'rsa' })
+			const [, pemKeys] = await keypair.to('pem')
+
+			const [jwkErrors, jwk] = new Key({ pem:pemKeys.private }).to('jwk')
+			
+			assertNoErrors(jwkErrors, '01')
+			assert.isOk(jwk, '02')
+			assert.equal(jwk.kty, 'RSA', '03')
+			assert.isOk(jwk.e, '04')
+			assert.isOk(jwk.n, '05')
+			assert.isOk(jwk.p, '06')
+			assert.isOk(jwk.q, '07')
+			assert.isOk(jwk.d, '08')
+			assert.isOk(jwk.dp, '09')
+			assert.isOk(jwk.dq, '10')
+			assert.isOk(jwk.qi, '11')
+			assert.isNotOk(jwk.dmp1, '12')
+			assert.isNotOk(jwk.dmq1, '13')
+			assert.isNotOk(jwk.coeff, '14')
+		})
+	})
 })
 
 
