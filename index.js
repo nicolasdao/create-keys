@@ -19,6 +19,17 @@ const voidFn = () => null
 
 program.version(version) // This is required is you wish to support the --version option.
 
+// program
+// 	.command('example <requireVal01> <requireVal02>')
+// 	.option('-t, --trim', 'Trims rows before comparing them')
+// 	.option('-i, --ignorecase', 'Case insensitive')
+// 	.alias('c') // Optional alias
+// 	.description('I am doing this and that') // Optional description
+// 	.action((requireVal01, requireVal02, options) => {
+// 		const { trim, ignorecase } = options || {}
+// 		// ... do something
+// 	})
+
 // 1. Creates your first command. This example shows an 'order' command with a required argument
 // called 'product' and an optional argument called 'option'.
 program
