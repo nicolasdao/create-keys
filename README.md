@@ -1,3 +1,5 @@
+> __WARNING__: This assistant only generates RSA and ECDSA private/public keys. We are still working on supporting SSH keys. In the meantime, please use the `ssh-keygen` tool as documented in the [Annexes](#annexes) section under the [Generating SSH keys](#generating-ssh-keys) topic.
+
 # create-key
 
 Terminal assistant to generate or read cryptographic keys. This utility was created out of frustration, as more time was spent Googling _how to use openssl_ rather than getting things done. This utility is originally aimed to be used via `npx`, but it can also be used in NodeJS programs. It is not as powerful as openssl as it only support RSA and ECDSA ciphers. Thanks to `npx`, there is no need to install this utility, just make sure that `npm` > 5.2 is installed and then run:
@@ -22,6 +24,8 @@ Currently, this package only supports the following:
 >	- [Listing OpenID JWK public keys using an OpenID discovery endpoint](#listing-openid-jwk-public-keys-using-an-openid-discovery-endpoint)
 >	- [Converting OpenID JWK public keys to PEM files](#converting-openid-jwk-public-keys-to-pem-files)
 > * [Using it in Node](#using-it-in-node)
+> * [Annexes](#annexes)
+>	- [Generating SSH keys](#generating-ssh-keys)
 
 # CLI
 
@@ -132,6 +136,34 @@ const main = async () => {
 
 main()
 ```
+# Annexes
+## Generating SSH keys
 
+```
+ssh-keygen -t rsa
+```
 
+Where `-t rsa` specifies the `rsa` algorithm.
+
+By default, this creates two new files under `~/.ssh`:
+- `id_rsa`: That's the private key.
+- `id_rsa.pub`: That's the public key.
+
+To create a private/public keypair with a specific filename, use the `-f` option as follow:
+
+```
+ssh-keygen -t rsa -f ~/.ssh/your-filename
+```
+
+To control the key length (default 3072), use the `-b` option as follow:
+
+```
+ssh-keygen -t rsa -f ~/.ssh/your-filename -b 2048
+```
+
+RSA is quite old, and it is now recommended to replace it with the widely adopted `ecdsa` algorithm using either 256, 384, or 521 key size:
+
+```
+ssh-keygen -t ecdsa -b 384 -f ./keys
+```
 
