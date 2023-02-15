@@ -26,6 +26,7 @@ Currently, this package only supports the following:
 > * [Using it in Node](#using-it-in-node)
 > * [Annexes](#annexes)
 >	- [Generating SSH keys](#generating-ssh-keys)
+>	- [Converting `.pem` to SSH pub key](#converting-pem-to-ssh-pub-key)
 
 # CLI
 
@@ -167,3 +168,11 @@ RSA is quite old, and it is now recommended to replace it with the widely adopte
 ssh-keygen -t ecdsa -b 384 -f ./keys
 ```
 
+## Converting `.pem` to SSH pub key
+
+```
+chmod 400 private_key1.pem
+ssh-keygen -y -f private_key1.pem > public_key1.pub
+```
+
+The first command avoids the error `Permissions 0644 for 'private_key1.pem' are too open.`
